@@ -2,37 +2,16 @@
 const router = require('express').Router();
 const db = require('../db');
 const checkAuth = require('../middleware/checkAuth');
-const multer = require('multer');
-const path = require('path');
+const { uploadPet } = require('../config/cloudinary'); // ✅ IMPORTAR CLOUDINARY
 
-// --- Configuração do Multer (Upload de Imagem) ---
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + '-' + file.originalname);
-  }
-});
+// ===================================================================
+// ROTAS PÚBLICAS
+// ===================================================================
 
-const fileFilter = (req, file, cb) => {
-  if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
-    cb(null, true);
-  } else {
-    cb(new Error('Formato de imagem não suportado (apenas JPG e PNG)'), false);
-  }
-};
-
-const upload = multer({ storage: storage, fileFilter: fileFilter });
-
-// --- Rotas de Pets ---
-
-// GET /api/pets/adoption (Público) - CORRIGIDO com 'AS'
+// GET /api/pets/adoption (Público)
 router.get('/adoption', async (req, res) => {
     const { species, size, age, search } = req.query;
     
-    // SQL CORRIGIDO: Seleciona campos como camelCase
     let query = `
         SELECT 
             p.id, p.name, p.species, p.breed, p.age, p.size, p.gender, p.type, p.status, p.description,
@@ -57,8 +36,8 @@ router.get('/adoption', async (req, res) => {
     try {
         const results = await db.query(query, params);
         const pets = results.rows;
+        
         for (const pet of pets) {
-            // CORRIGIDO: Renomeia campos das vacinas
             const vaccineRes = await db.query(
                 `SELECT id, name, date, notes, vet, pet_id AS "petId", next_date AS "nextDate" 
                  FROM vaccines WHERE pet_id = $1 ORDER BY date DESC`, 
@@ -67,13 +46,19 @@ router.get('/adoption', async (req, res) => {
             pet.vaccines = vaccineRes.rows;
         }
         res.json(pets);
-    } catch (err) { console.error(err); res.status(500).json({ message: 'Erro ao buscar pets para adoção.' }); }
+    } catch (err) { 
+        console.error(err); 
+        res.status(500).json({ message: 'Erro ao buscar pets para adoção.' }); 
+    }
 });
 
-// GET /api/pets/mypets (Privado) - CORRIGIDO com 'AS'
+// ===================================================================
+// ROTAS PRIVADAS
+// ===================================================================
+
+// GET /api/pets/mypets (Privado)
 router.get('/mypets', checkAuth, async (req, res) => {
     try {
-        // SQL CORRIGIDO: Renomeia os campos para camelCase
         const petRes = await db.query(
             `SELECT id, name, species, breed, age, size, gender, type, status, description,
              owner_id AS "ownerId", 
@@ -85,7 +70,6 @@ router.get('/mypets', checkAuth, async (req, res) => {
         
         const pets = petRes.rows;
         for (const pet of pets) {
-            // CORRIGIDO: Renomeia campos das vacinas
             const vaccineRes = await db.query(
                 `SELECT id, name, date, notes, vet, pet_id AS "petId", next_date AS "nextDate" 
                  FROM vaccines WHERE pet_id = $1 ORDER BY date DESC`, 
@@ -95,18 +79,20 @@ router.get('/mypets', checkAuth, async (req, res) => {
         }
         
         res.json(pets);
-    } catch (err) { console.error(err); res.status(500).json({ message: 'Erro ao buscar "Meus Pets".' }); }
+    } catch (err) { 
+        console.error(err); 
+        res.status(500).json({ message: 'Erro ao buscar "Meus Pets".' }); 
+    }
 });
 
-// POST /api/pets (Privado) - CORRIGIDO para UPLOAD
-router.post('/', checkAuth, upload.single('photo'), async (req, res) => {
+// POST /api/pets (Privado) - ✅ UPLOAD CLOUDINARY
+router.post('/', checkAuth, uploadPet.single('photo'), async (req, res) => {
     const { name, species, breed, age, size, gender, type, description } = req.body;
     
+    // ✅ Cloudinary retorna a URL automaticamente
     let photoUrl = null;
     if (req.file) {
-      // Cria a URL completa para o frontend
-      const serverUrl = `${req.protocol}://${req.get('host')}`;
-      photoUrl = `${serverUrl}/${req.file.path.replace(/\\/g, "/")}`; // Trata barras no Windows
+        photoUrl = req.file.path; // URL do Cloudinary
     }
 
     const status = (type === 'adoption') ? 'available' : 'personal';
@@ -119,22 +105,23 @@ router.post('/', checkAuth, upload.single('photo'), async (req, res) => {
                        owner_id AS "ownerId", photo_url AS "photoUrl", created_at AS "createdAt"`,
             [req.userData.userId, name, species, breed, age, size, gender, type, status, description, photoUrl]
         );
-        newPet.rows[0].vaccines = []; // Novo pet começa sem vacinas
+        newPet.rows[0].vaccines = [];
         res.status(201).json(newPet.rows[0]);
-    } catch (err) { console.error(err); res.status(500).json({ message: 'Erro ao cadastrar pet.' }); }
+    } catch (err) { 
+        console.error(err); 
+        res.status(500).json({ message: 'Erro ao cadastrar pet.' }); 
+    }
 });
 
-// PUT /api/pets/:petId (Privado) - CORRIGIDO para UPLOAD
-router.put('/:petId', checkAuth, upload.single('photo'), async (req, res) => {
+// PUT /api/pets/:petId (Privado) - ✅ UPLOAD CLOUDINARY
+router.put('/:petId', checkAuth, uploadPet.single('photo'), async (req, res) => {
     const { petId } = req.params;
     const { name, species, breed, age, size, gender, type, description } = req.body;
     const status = (type === 'adoption') ? 'available' : 'personal';
 
-    // Manter a foto antiga se nenhuma nova for enviada
     let photoUrl = req.body.photoUrl || null; 
     if (req.file) {
-      const serverUrl = `${req.protocol}://${req.get('host')}`;
-      photoUrl = `${serverUrl}/${req.file.path.replace(/\\/g, "/")}`;
+        photoUrl = req.file.path; // Nova URL do Cloudinary
     }
 
     try {
@@ -150,20 +137,28 @@ router.put('/:petId', checkAuth, upload.single('photo'), async (req, res) => {
             return res.status(404).json({ message: 'Pet não encontrado ou você não tem permissão.' });
         }
         res.json(updatedPet.rows[0]);
-    } catch (err) { console.error(err); res.status(500).json({ message: 'Erro ao atualizar pet.' }); }
+    } catch (err) { 
+        console.error(err); 
+        res.status(500).json({ message: 'Erro ao atualizar pet.' }); 
+    }
 });
 
-// DELETE /api/pets/:petId (Privado) - (Sem alterações)
+// DELETE /api/pets/:petId (Privado)
 router.delete('/:petId', checkAuth, async (req, res) => {
     const { petId } = req.params;
     try {
         const result = await db.query("DELETE FROM pets WHERE id = $1 AND owner_id = $2", [petId, req.userData.userId]);
-        if (result.rowCount === 0) { return res.status(404).json({ message: 'Pet não encontrado ou permissão negada.' }); }
+        if (result.rowCount === 0) { 
+            return res.status(404).json({ message: 'Pet não encontrado ou permissão negada.' }); 
+        }
         res.status(200).json({ message: 'Pet excluído com sucesso.' });
-    } catch (err) { console.error(err); res.status(500).json({ message: 'Erro ao excluir pet.' }); }
+    } catch (err) { 
+        console.error(err); 
+        res.status(500).json({ message: 'Erro ao excluir pet.' }); 
+    }
 });
 
-// PUT /api/pets/:petId/adopt (Privado) - (Sem alterações)
+// PUT /api/pets/:petId/adopt (Privado)
 router.put('/:petId/adopt', checkAuth, async (req, res) => {
     const { petId } = req.params;
     try {
@@ -172,12 +167,17 @@ router.put('/:petId/adopt', checkAuth, async (req, res) => {
              RETURNING id, owner_id AS "ownerId", status`,
             [petId, req.userData.userId]
         );
-        if (result.rows.length === 0) { return res.status(404).json({ message: 'Pet não encontrado ou permissão negada.' }); }
+        if (result.rows.length === 0) { 
+            return res.status(404).json({ message: 'Pet não encontrado ou permissão negada.' }); 
+        }
         res.json({ message: 'Pet marcado como adotado!', pet: result.rows[0] });
-    } catch (err) { console.error(err); res.status(500).json({ message: 'Erro ao marcar como adotado.' }); }
+    } catch (err) { 
+        console.error(err); 
+        res.status(500).json({ message: 'Erro ao marcar como adotado.' }); 
+    }
 });
 
-// POST /api/pets/:petId/vaccines (Privado) - CORRIGIDO com 'AS'
+// POST /api/pets/:petId/vaccines (Privado)
 router.post('/:petId/vaccines', checkAuth, async (req, res) => {
     const { petId } = req.params;
     const { name, date, nextDate, vet, notes } = req.body;
@@ -195,7 +195,10 @@ router.post('/:petId/vaccines', checkAuth, async (req, res) => {
             [petId, name, date, nextDate || null, vet, notes]
         );
         res.status(201).json(newVaccine.rows[0]);
-    } catch (err) { console.error(err); res.status(500).json({ message: 'Erro ao adicionar vacina.' }); }
+    } catch (err) { 
+        console.error(err); 
+        res.status(500).json({ message: 'Erro ao adicionar vacina.' }); 
+    }
 });
 
 module.exports = router;
