@@ -9,7 +9,11 @@ const port = process.env.PORT || 3001;
 
 // CORS - Permitir TODOS os domínios (você pode restringir depois)
 app.use(cors({
-  origin: '*', 
+  origin: [
+    'https://petplus.onrender.com', // ⚠️ Sua URL do frontend
+    'http://localhost:3000', // Para desenvolvimento local
+    'http://localhost:5500'
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -36,4 +40,5 @@ app.get('/api', (req, res) => {
 app.listen(port, '0.0.0.0', () => {
   console.log(`🚀 Servidor rodando na porta ${port}`);
 });
+
 
