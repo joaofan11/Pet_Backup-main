@@ -12,12 +12,9 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZdA="
      crossorigin=""></script>
-
 </head>
 <body>
-
     <div class="container">
-        
         <nav id="navigation">
             <div class="logo">
                 <img src="logo.png" alt="Logo PetPlus" width="50" height="50">
@@ -25,16 +22,20 @@
             </div>
             <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
                 <div id="userInfo" class="user-info">
-                    👋 Olá, <span id="userName"></span>
+                    <div class="user-avatar" id="userAvatar" onclick="showPage('profile')">
+                        <span id="userAvatarText">?</span>
+                    </div>
+                    <span id="userName"></span>
                 </div>
                 <div class="nav-links">
                     <button class="nav-btn active" onclick="showPage('landing')">Home</button>
                     <button class="nav-btn" onclick="showPage('adoption')">Adotar</button>
                     <button class="nav-btn" onclick="showPage('services')">Serviços</button>
-                    
                     <button class="nav-btn" onclick="showPage('blog')">Blog</button>
                     <button class="nav-btn" onclick="showPage('my-pets')" id="myPetsBtn" style="display: none;">Meus Pets</button>
+                    <button class="nav-btn" onclick="showPage('profile')" id="profileBtn" style="display: none;">Perfil</button>
                     <button class="nav-btn" onclick="showPage('login')" id="loginBtn">Entrar</button>
+                    <button class="nav-btn" onclick="showPage('register')" id="registerBtn">Cadastrar</button>
                     <button class="nav-btn" onclick="logout()" id="logoutBtn" style="display: none;">Sair</button>
                 </div>
             </div>
@@ -46,7 +47,7 @@
                 <p>A plataforma mais completa para adoção de pets e gestão da saúde dos seus animais de estimação</p>
                 <div class="cta-buttons">
                     <button class="cta-btn" onclick="showPage('adoption')"> Adotar um Pet</button>
-                    <button class="cta-btn secondary" onclick="showPage('register')"> Cadastrar-se</button>
+                    <button class="cta-btn secondary" onclick="showPage('register')" id="ctaRegisterBtn"> Cadastrar-se</button>
                 </div>
             </div>
             <div class="features">
@@ -65,10 +66,10 @@
                     <h3>Carteira Digital</h3>
                     <p>Mantenha o histórico completo de vacinas, consultas e medicamentos dos seus pets sempre organizado e acessível.</p>
                 </div>
-                    <div class="feature-card">
+                <div class="feature-card">
                     <span class="feature-icon">🩺</span>
                     <h3>Serviços</h3>
-                    <p>Encontre tudo o que seu pet precisa em um só lugar: hospedagem, creche, pet sitter, banho e tosa profissionais e clínicas para garantir bem-estar e felicidade..</p>
+                    <p>Encontre tudo o que seu pet precisa em um só lugar: hospedagem, creche, pet sitter, banho e tosa profissionais e clínicas para garantir bem-estar e felicidade.</p>
                 </div>
             </div>
         </div>
@@ -126,6 +127,48 @@
                     Já tem conta? 
                     <a href="#" onclick="showPage('login')" style="color: #667eea; font-weight: 600;">Faça login aqui</a>
                 </p>
+            </div>
+        </div>
+
+        <div id="profile" class="page">
+            <div class="form-container">
+                <h2 class="form-title">Meu Perfil</h2>
+                <div id="profileMessage" class="message"></div>
+                
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <div class="profile-avatar-large" id="profileAvatarLarge">
+                        <span id="profileAvatarLargeText">?</span>
+                    </div>
+                    <button class="btn btn-small" onclick="document.getElementById('profilePhotoInput').click()" style="margin-top: 15px; width: auto; padding: 10px 20px;">
+                        Alterar Foto
+                    </button>
+                </div>
+
+                <form id="profileForm">
+                    <input type="file" id="profilePhotoInput" accept="image/*" style="display: none;">
+                    
+                    <div class="form-group">
+                        <label for="profileName">Nome Completo</label>
+                        <input type="text" id="profileName" name="name" required placeholder="Seu nome completo">
+                    </div>
+                    <div class="form-group">
+                        <label for="profileEmail">Email</label>
+                        <input type="email" id="profileEmail" name="email" required placeholder="seu@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="profilePhone">Telefone</label>
+                        <input type="tel" id="profilePhone" name="phone" required placeholder="(00) 00000-0000">
+                    </div>
+                    <div class="form-group">
+                        <label for="profilePassword">Nova Senha (deixe em branco para não alterar)</label>
+                        <input type="password" id="profilePassword" name="password" minlength="6" placeholder="••••••••">
+                    </div>
+                    <div class="form-group">
+                        <label for="profileConfirmPassword">Confirmar Nova Senha</label>
+                        <input type="password" id="profileConfirmPassword" name="confirmPassword" placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="btn">Atualizar Perfil</button>
+                </form>
             </div>
         </div>
 
@@ -249,8 +292,7 @@
                     </div>
                 </div>
             </div>
-            <div id="adoptionPets" class="pets-grid">
-                </div>
+            <div id="adoptionPets" class="pets-grid"></div>
         </div>
 
         <div id="my-pets" class="page">
@@ -261,8 +303,7 @@
                         + Adicionar Pet
                     </button>
                 </div>
-                <div id="myPetsGrid" class="pets-grid">
-                    </div>
+                <div id="myPetsGrid" class="pets-grid"></div>
             </div>
         </div>
 
@@ -292,8 +333,7 @@
                     </div>
                 </div>
             </div>
-            <div id="servicesGrid" class="pets-grid" style="padding: 30px;">
-                </div>
+            <div id="servicesGrid" class="pets-grid" style="padding: 30px;"></div>
         </div>
         
         <div id="service-register" class="page">
@@ -389,24 +429,25 @@
                     </div>
                 </div>
 
-                <div id="blogFeed" class="blog-feed">
-                    </div>
+                <div id="blogFeed" class="blog-feed"></div>
             </div>
         </div>
+
         <div id="petModal" class="modal">
             <div class="modal-content">
                 <span class="close" onclick="closePetModal()">&times;</span>
-                <div id="petModalContent">
-                    </div>
+                <div id="petModalContent"></div>
             </div>
         </div>
 
         <div id="vaccinationModal" class="modal">
             <div class="modal-content">
                 <span class="close" onclick="closeVaccinationModal()">&times;</span>
-                <h3 style="margin-bottom: 25px; color: #2d3748; font-size: 1.5rem;">Adicionar Vacina</h3>
+                <h3 style="margin-bottom: 25px; color: #2d3748; font-size: 1.5rem;" id="vaccinationModalTitle">Adicionar Vacina</h3>
                 <form id="vaccinationForm">
                     <input type="hidden" id="vaccinePetId" name="petId">
+                    <input type="hidden" id="vaccineEditId" name="vaccineId">
+                    
                     <div class="form-group">
                         <label for="vaccineName">Nome da Vacina</label>
                         <input type="text" id="vaccineName" name="name" required placeholder="Ex: V10, Antirrábica...">
@@ -420,14 +461,14 @@
                         <input type="date" id="vaccineNext" name="nextDate">
                     </div>
                     <div class="form-group">
-                        <label for="vaccineVet">VeterinÁrio</label>
+                        <label for="vaccineVet">Veterinário</label>
                         <input type="text" id="vaccineVet" name="vet" placeholder="Nome do veterinário ou clínica">
                     </div>
                     <div class="form-group">
                         <label for="vaccineNotes">Observações</label>
                         <textarea id="vaccineNotes" name="notes" placeholder="Observações adicionais, reações, etc."></textarea>
                     </div>
-                    <button type="submit" class="btn">Adicionar Vacina</button>
+                    <button type="submit" class="btn" id="vaccinationFormButton">Adicionar Vacina</button>
                 </form>
             </div>
         </div>
@@ -435,8 +476,7 @@
         <div id="contactModal" class="modal">
             <div class="modal-content">
                 <span class="close" onclick="closeContactModal()">&times;</span>
-                <div id="contactModalContent">
-                    </div>
+                <div id="contactModalContent"></div>
             </div>
         </div>
 
