@@ -1144,7 +1144,15 @@ function displayBlogPosts(posts, container) {
             ? `<button class="post-actions-btn" onclick="showPostForm(${post.id})">Editar</button>`
             : '';
 
-        const avatarLetter = ownerName.charAt(0).toUpperCase();
+        // LÓGICA DO AVATAR CORRIGIDA
+        let avatarContent;
+        if (post.authorPhoto) {
+            // Se tiver foto, usa a imagem
+            avatarContent = `<img src="${post.authorPhoto}" alt="${ownerName}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+        } else {
+            // Se não, usa a inicial
+            avatarContent = ownerName.charAt(0).toUpperCase();
+        }
 
         const userHasLiked = currentUser && post.likes.includes(currentUser.user.userId);
         const likeBtnActive = userHasLiked ? 'active' : '';
@@ -1169,7 +1177,9 @@ function displayBlogPosts(posts, container) {
             <div class="post-card" id="post-${post.id}">
                 <div class="post-header">
                     <div class="post-author-info">
-                        <div class="post-author-avatar">${avatarLetter}</div>
+                        <div class="post-author-avatar" style="overflow: hidden; padding: 0;">
+                            ${avatarContent}
+                        </div>
                         <div class="post-author-details">
                             <span class="post-author-name">${ownerName}</span>
                             <span class="post-date">${formatDateTime(post.createdAt)}</span>
