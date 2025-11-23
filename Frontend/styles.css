@@ -628,13 +628,15 @@ nav {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
+    flex-wrap: wrap; /* Permite quebrar linha se faltar espaço */
+    gap: 10px;
 }
 
 .vaccination-header h3 {
+    margin: 0;
     color: #2d3748;
-    font-size: 1.3rem;
-    font-weight: 700;
+    white-space: nowrap; /* Impede que o título quebre de forma feia */
 }
 
 .vaccination-list {
@@ -1306,3 +1308,4 @@ footer {
         margin: 10px;
     }
 }
+
