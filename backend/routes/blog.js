@@ -1,18 +1,19 @@
-// backend/routes/blog.js
 const router = require('express').Router();
 const db = require('../db');
 const checkAuth = require('../middleware/checkAuth');
-const { uploadPost } = require('../config/cloudinary'); // ✅ IMPORTAR CLOUDINARY
+const { uploadPost } = require('../config/cloudinary');
 
 // GET /api/blog (Público)
 router.get('/', async (req, res) => {
     try {
+        // CORREÇÃO: Adicionado u.photo_url AS "authorPhoto"
         const postRes = await db.query(`
             SELECT p.id, p.content, p.location, 
                    p.owner_id AS "ownerId", 
                    p.photo_url AS "photoUrl", 
                    p.created_at AS "createdAt", 
-                   u.name AS "ownerName" 
+                   u.name AS "ownerName",
+                   u.photo_url AS "authorPhoto" 
             FROM posts p 
             JOIN users u ON p.owner_id = u.id 
             ORDER BY p.created_at DESC
@@ -25,7 +26,8 @@ router.get('/', async (req, res) => {
                        c.post_id AS "postId", 
                        c.owner_id AS "ownerId", 
                        c.created_at AS "createdAt", 
-                       u.name AS "ownerName" 
+                       u.name AS "ownerName",
+                       u.photo_url AS "authorPhoto"
                 FROM comments c 
                 JOIN users u ON c.owner_id = u.id 
                 WHERE c.post_id = $1 
@@ -44,13 +46,13 @@ router.get('/', async (req, res) => {
     }
 });
 
-// POST /api/blog (Privado) - ✅ UPLOAD CLOUDINARY
+// POST /api/blog (Privado)
 router.post('/', checkAuth, uploadPost.single('photo'), async (req, res) => {
     const { content, location } = req.body;
     
     let photoUrl = null;
     if (req.file) {
-        photoUrl = req.file.path; // URL do Cloudinary
+        photoUrl = req.file.path;
     }
 
     try {
@@ -61,7 +63,17 @@ router.post('/', checkAuth, uploadPost.single('photo'), async (req, res) => {
             [req.userData.userId, content, location, photoUrl]
         );
         
-        const finalPost = { ...newPost.rows[0], ownerName: req.userData.name, comments: [], likes: [] };
+        // CORREÇÃO: Busca a foto do usuário atual para retornar no response imediato
+        const userRes = await db.query("SELECT photo_url FROM users WHERE id = $1", [req.userData.userId]);
+        const authorPhoto = userRes.rows[0]?.photo_url || null;
+
+        const finalPost = { 
+            ...newPost.rows[0], 
+            ownerName: req.userData.name, 
+            authorPhoto: authorPhoto, // Inclui a foto no retorno
+            comments: [], 
+            likes: [] 
+        };
         res.status(201).json(finalPost);
     } catch (err) { 
         console.error(err); 
@@ -69,14 +81,14 @@ router.post('/', checkAuth, uploadPost.single('photo'), async (req, res) => {
     }
 });
 
-// PUT /api/blog/:postId (Privado) - ✅ UPLOAD CLOUDINARY
+// PUT /api/blog/:postId (Privado)
 router.put('/:postId', checkAuth, uploadPost.single('photo'), async (req, res) => {
     const { postId } = req.params;
     const { content, location } = req.body;
 
     let photoUrl = req.body.photoUrl || null;
     if (req.file) {
-        photoUrl = req.file.path; // Nova URL do Cloudinary
+        photoUrl = req.file.path;
     }
 
     try {
