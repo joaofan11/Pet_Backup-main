@@ -31,7 +31,6 @@ Cadastro de Serviços: Profissionais podem divulgar seus serviços na plataforma
 Frontend
 HTML5 & CSS3: Estrutura semântica e estilização responsiva.
 JavaScript (Vanilla): Lógica de interação com a API e manipulação do DOM.
-Leaflet.js: Biblioteca para mapas interativos.
 
 Backend
 Node.js & Express: Servidor e API RESTful.
