@@ -1,14 +1,8 @@
-// backend/routes/pets.js
 const router = require('express').Router();
 const db = require('../db');
 const checkAuth = require('../middleware/checkAuth');
-const { uploadPet } = require('../config/cloudinary'); // ✅ IMPORTAR CLOUDINARY
+const { uploadPet } = require('../config/cloudinary');
 
-// ===================================================================
-// ROTAS PÚBLICAS
-// ===================================================================
-
-// GET /api/pets/adoption (Público)
 router.get('/adoption', async (req, res) => {
     const { species, size, age, search } = req.query;
     
@@ -52,11 +46,6 @@ router.get('/adoption', async (req, res) => {
     }
 });
 
-// ===================================================================
-// ROTAS PRIVADAS
-// ===================================================================
-
-// GET /api/pets/mypets (Privado)
 router.get('/mypets', checkAuth, async (req, res) => {
     try {
         const petRes = await db.query(
@@ -85,14 +74,12 @@ router.get('/mypets', checkAuth, async (req, res) => {
     }
 });
 
-// POST /api/pets (Privado) - ✅ UPLOAD CLOUDINARY
 router.post('/', checkAuth, uploadPet.single('photo'), async (req, res) => {
     const { name, species, breed, age, size, gender, type, description } = req.body;
     
-    // ✅ Cloudinary retorna a URL automaticamente
     let photoUrl = null;
     if (req.file) {
-        photoUrl = req.file.path; // URL do Cloudinary
+        photoUrl = req.file.path;
     }
 
     const status = (type === 'adoption') ? 'available' : 'personal';
@@ -113,7 +100,6 @@ router.post('/', checkAuth, uploadPet.single('photo'), async (req, res) => {
     }
 });
 
-// PUT /api/pets/:petId (Privado) - ✅ UPLOAD CLOUDINARY
 router.put('/:petId', checkAuth, uploadPet.single('photo'), async (req, res) => {
     const { petId } = req.params;
     const { name, species, breed, age, size, gender, type, description } = req.body;
@@ -121,7 +107,7 @@ router.put('/:petId', checkAuth, uploadPet.single('photo'), async (req, res) => 
 
     let photoUrl = req.body.photoUrl || null; 
     if (req.file) {
-        photoUrl = req.file.path; // Nova URL do Cloudinary
+        photoUrl = req.file.path;
     }
 
     try {
@@ -143,7 +129,6 @@ router.put('/:petId', checkAuth, uploadPet.single('photo'), async (req, res) => 
     }
 });
 
-// DELETE /api/pets/:petId (Privado)
 router.delete('/:petId', checkAuth, async (req, res) => {
     const { petId } = req.params;
     try {
@@ -158,7 +143,6 @@ router.delete('/:petId', checkAuth, async (req, res) => {
     }
 });
 
-// PUT /api/pets/:petId/adopt (Privado)
 router.put('/:petId/adopt', checkAuth, async (req, res) => {
     const { petId } = req.params;
     try {
@@ -177,7 +161,6 @@ router.put('/:petId/adopt', checkAuth, async (req, res) => {
     }
 });
 
-// POST /api/pets/:petId/vaccines (Privado)
 router.post('/:petId/vaccines', checkAuth, async (req, res) => {
     const { petId } = req.params;
     const { name, date, nextDate, vet, notes } = req.body;
@@ -198,6 +181,58 @@ router.post('/:petId/vaccines', checkAuth, async (req, res) => {
     } catch (err) { 
         console.error(err); 
         res.status(500).json({ message: 'Erro ao adicionar vacina.' }); 
+    }
+});
+
+router.put('/vaccines/:vaccineId', checkAuth, async (req, res) => {
+    const { vaccineId } = req.params;
+    const { name, date, nextDate, vet, notes } = req.body;
+
+    try {
+        const vaccineCheck = await db.query(
+            `SELECT v.*, p.owner_id FROM vaccines v JOIN pets p ON v.pet_id = p.id WHERE v.id = $1`, 
+            [vaccineId]
+        );
+
+        if (vaccineCheck.rows.length === 0) {
+            return res.status(404).json({ message: 'Vacina não encontrada.' });
+        }
+        if (vaccineCheck.rows[0].owner_id !== req.userData.userId) {
+            return res.status(403).json({ message: 'Permissão negada.' });
+        }
+
+        const updated = await db.query(
+            `UPDATE vaccines SET name=$1, date=$2, next_date=$3, vet=$4, notes=$5 
+             WHERE id = $6 RETURNING *`,
+            [name, date, nextDate || null, vet, notes, vaccineId]
+        );
+        res.json(updated.rows[0]);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Erro ao atualizar vacina.' });
+    }
+});
+
+router.delete('/vaccines/:vaccineId', checkAuth, async (req, res) => {
+    const { vaccineId } = req.params;
+    try {
+        const vaccineCheck = await db.query(
+            `SELECT v.*, p.owner_id FROM vaccines v JOIN pets p ON v.pet_id = p.id WHERE v.id = $1`, 
+            [vaccineId]
+        );
+
+        if (vaccineCheck.rows.length === 0) {
+            return res.status(404).json({ message: 'Vacina não encontrada.' });
+        }
+        if (vaccineCheck.rows[0].owner_id !== req.userData.userId) {
+            return res.status(403).json({ message: 'Permissão negada.' });
+        }
+
+        await db.query("DELETE FROM vaccines WHERE id = $1", [vaccineId]);
+        res.status(200).json({ message: 'Vacina removida com sucesso.' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Erro ao excluir vacina.' });
     }
 });
 

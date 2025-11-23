@@ -655,6 +655,8 @@ nav {
     transition: transform 0.2s ease;
 }
 
+
+
 .vaccination-item:hover {
     transform: translateX(5px);
 }
@@ -996,10 +998,13 @@ nav {
 
 .post-image {
     width: 100%;
-    max-height: 500px; /* Limita altura da imagem */
-    object-fit: cover;
+    max-width: 100%;
+    height: auto;
+    max-height: 600px;
+    object-fit: contain; /* Ajusta a imagem sem cortar */
     margin-top: 20px;
-    border-radius: 15px; /* Bordas arredondadas na imagem */
+    border-radius: 15px;
+    background-color: #f7fafc; /* Fundo sutil se a imagem não preencher tudo */
 }
 
 /* --- LIKES E COMENTÁRIOS --- */
@@ -1177,4 +1182,73 @@ footer {
     .post-body {
         padding: 0 20px 20px;
     }
+}
+
+.profile-avatar-large {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #75b2c3, #99b06a);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    font-size: 4rem;
+    color: white;
+    font-weight: 700;
+    overflow: hidden;
+    border: 4px solid white;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.profile-avatar-large img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.vaccination-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.btn-icon {
+    background: transparent;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.btn-icon.edit:hover {
+    background: #ebf8ff;
+    color: #3182ce;
+    border-color: #3182ce;
+}
+
+.btn-icon.delete:hover {
+    background: #fff5f5;
+    color: #e53e3e;
+    border-color: #e53e3e;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #e2e8f0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }

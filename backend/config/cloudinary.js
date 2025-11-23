@@ -1,27 +1,23 @@
-// backend/config/cloudinary.js
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
 
-// Configuração do Cloudinary
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// Storage para PETS
 const petStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: 'petplus/pets', // Pasta no Cloudinary
+    folder: 'petplus/pets',
     allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
-    transformation: [{ width: 800, height: 800, crop: 'limit' }], // Redimensiona
-    public_id: (req, file) => `pet-${Date.now()}` // Nome do arquivo
+    transformation: [{ width: 800, height: 800, crop: 'limit' }],
+    public_id: (req, file) => `pet-${Date.now()}`
   }
 });
 
-// Storage para POSTS DO BLOG
 const postStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
@@ -32,10 +28,19 @@ const postStorage = new CloudinaryStorage({
   }
 });
 
-// Configurar Multer
+const userStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'petplus/users',
+    allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
+    transformation: [{ width: 500, height: 500, crop: 'fill', gravity: 'face' }],
+    public_id: (req, file) => `user-${Date.now()}`
+  }
+});
+
 const uploadPet = multer({ 
   storage: petStorage,
-  limits: { fileSize: 5 * 1024 * 1024 } // Limite de 5MB
+  limits: { fileSize: 5 * 1024 * 1024 }
 });
 
 const uploadPost = multer({ 
@@ -43,8 +48,14 @@ const uploadPost = multer({
   limits: { fileSize: 5 * 1024 * 1024 }
 });
 
+const uploadUser = multer({ 
+  storage: userStorage,
+  limits: { fileSize: 5 * 1024 * 1024 }
+});
+
 module.exports = {
   cloudinary,
   uploadPet,
-  uploadPost
+  uploadPost,
+  uploadUser
 };

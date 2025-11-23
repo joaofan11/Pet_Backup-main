@@ -1,23 +1,9 @@
-// ===================================================================
-// 1. ESTADO DA APLICAÇÃO
-// ===================================================================
-
-const API_URL = 'https://petplus-backend.onrender.com/api'; // ← CORRIGIDO: /api no final
-
-// currentUser armazena o objeto { user: { id, name, email }, token }
+const API_URL = 'https://petplus-backend.onrender.com/api'; 
 let currentUser = null; 
-
-// Armazena os dados buscados da API
 let pets = [];
 let serviceProviders = [];
 let blogPosts = [];
 
-// ===================================================================
-// 2. FUNÇÕES AUXILIARES DE API
-// ===================================================================
-
-/** Função centralizada para requisições fetch, lidando com o token de autenticação e FormData.
- */
 async function apiFetch(endpoint, options = {}) {
     const headers = {
         ...options.headers,
@@ -53,10 +39,6 @@ async function apiFetch(endpoint, options = {}) {
         throw error; 
     }
 }
-
-// ===================================================================
-// 3. FUNÇÕES UTILITÁRIAS (DOM)
-// ===================================================================
 
 function showMessage(elementId, message, type = 'success') {
     const messageEl = document.getElementById(elementId);
@@ -100,10 +82,6 @@ function getGenderLabel(gender) {
     return gender === 'male' ? 'Macho' : 'Fêmea';
 }
 
-// ===================================================================
-// 4. NAVEGAÇÃO E AUTENTICAÇÃO
-// ===================================================================
-
 function showPage(pageId) {
     document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
@@ -121,7 +99,6 @@ function showPage(pageId) {
         clickedBtn.classList.add('active');
     }
 
-    // Lógica de carregamento de página
     if (pageId === 'adoption') {
         loadAdoptionPets();
     } else if (pageId === 'my-pets') {
@@ -130,26 +107,53 @@ function showPage(pageId) {
         loadServices();
     } else if (pageId === 'blog') {
         loadBlogPosts();
+    } else if (pageId === 'profile') {
+        loadUserProfile();
     }
 }
 
 function updateAuthButtons() {
     const loginBtn = document.getElementById('loginBtn');
+    const registerBtn = document.getElementById('registerBtn');
     const logoutBtn = document.getElementById('logoutBtn');
     const myPetsBtn = document.getElementById('myPetsBtn');
+    const profileBtn = document.getElementById('profileBtn');
     const userInfo = document.getElementById('userInfo');
     const userName = document.getElementById('userName');
+    const ctaRegisterBtn = document.getElementById('ctaRegisterBtn');
+    
+    // Atualiza avatar do nav
+    const navAvatar = document.getElementById('userAvatar');
+    const navAvatarText = document.getElementById('userAvatarText');
 
     if (currentUser) {
         loginBtn.style.display = 'none';
+        registerBtn.style.display = 'none';
+        if (ctaRegisterBtn) ctaRegisterBtn.style.display = 'none';
+        
         logoutBtn.style.display = 'inline-block';
         myPetsBtn.style.display = 'inline-block';
+        profileBtn.style.display = 'inline-block';
+        
         userInfo.classList.add('active');
-        userName.textContent = currentUser.user.name;
+        userName.textContent = currentUser.user.name.split(' ')[0]; // Só o primeiro nome
+
+        if (currentUser.user.photoUrl) {
+            navAvatar.innerHTML = `<img src="${currentUser.user.photoUrl}" alt="Avatar">`;
+        } else {
+            navAvatar.innerHTML = `<span id="userAvatarText">${currentUser.user.name.charAt(0).toUpperCase()}</span>`;
+            navAvatar.style.background = '#75b2c3';
+            navAvatar.style.color = 'white';
+        }
+
     } else {
         loginBtn.style.display = 'inline-block';
+        registerBtn.style.display = 'inline-block';
+        if (ctaRegisterBtn) ctaRegisterBtn.style.display = 'inline-block';
+        
         logoutBtn.style.display = 'none';
         myPetsBtn.style.display = 'none';
+        profileBtn.style.display = 'none';
         userInfo.classList.remove('active');
     }
 }
@@ -170,8 +174,8 @@ async function handleLogin(event) {
             body: JSON.stringify({ email, password })
         });
 
-        currentUser = data; // data = { token, user: { id, name, email } }
-        localStorage.setItem('petplus_auth', JSON.stringify(currentUser)); // Persiste o login
+        currentUser = data; 
+        localStorage.setItem('petplus_auth', JSON.stringify(currentUser)); 
         
         showMessage('loginMessage', data.message, 'success');
         updateAuthButtons();
@@ -223,16 +227,13 @@ async function handleRegister(event) {
 
 function logout() {
     currentUser = null;
-    localStorage.removeItem('petplus_auth'); // Limpa o login
+    localStorage.removeItem('petplus_auth'); 
     updateAuthButtons();
     showPage('landing');
     loadAdoptionPets();
     loadServices();
 }
 
-/**
- * Tenta carregar o usuário do localStorage ao iniciar a página
- */
 function checkLocalStorageLogin() {
     const authData = localStorage.getItem('petplus_auth');
     if (authData) {
@@ -241,10 +242,62 @@ function checkLocalStorageLogin() {
     }
 }
 
+async function loadUserProfile() {
+    if (!currentUser) return;
+    
+    try {
+        const user = await apiFetch('/auth/me');
+        document.getElementById('profileName').value = user.name;
+        document.getElementById('profileEmail').value = user.email;
+        document.getElementById('profilePhone').value = user.phone;
+        
+        // Atualiza avatar grande na página de perfil
+        const avatarContainer = document.getElementById('profileAvatarLarge');
+        if (user.photoUrl) {
+             avatarContainer.innerHTML = `<img src="${user.photoUrl}" alt="Profile">`;
+        } else {
+             avatarContainer.innerHTML = `<span id="profileAvatarLargeText">${user.name.charAt(0).toUpperCase()}</span>`;
+        }
+        
+    } catch (error) {
+        console.error("Erro ao carregar perfil:", error);
+    }
+}
 
-// ===================================================================
-// 5. GERENCIAMENTO DE PETS
-// ===================================================================
+async function handleProfileUpdate(event) {
+    event.preventDefault();
+    
+    const formData = new FormData(event.target);
+    const password = document.getElementById('profilePassword').value;
+    const confirmPassword = document.getElementById('profileConfirmPassword').value;
+    
+    if (password && password !== confirmPassword) {
+        showMessage('profileMessage', 'As senhas não coincidem.', 'error');
+        return;
+    }
+
+    try {
+        const data = await apiFetch('/auth/update', {
+            method: 'PUT',
+            body: formData,
+            isFormData: true
+        });
+
+        // Atualiza estado local
+        currentUser.token = data.token;
+        currentUser.user = data.user;
+        localStorage.setItem('petplus_auth', JSON.stringify(currentUser));
+        
+        showMessage('profileMessage', 'Perfil atualizado com sucesso!', 'success');
+        updateAuthButtons();
+        loadUserProfile();
+        document.getElementById('profilePassword').value = '';
+        document.getElementById('profileConfirmPassword').value = '';
+
+    } catch (error) {
+        showMessage('profileMessage', error.message, 'error');
+    }
+}
 
 function showPetRegisterPage(petId = null) {
     const form = document.getElementById('petRegisterForm');
@@ -263,7 +316,6 @@ function showPetRegisterPage(petId = null) {
         hiddenId.value = '';
         deleteButtonWrapper.style.display = 'none';
     } else {
-        // Encontra o pet no array local
         const pet = pets.find(p => p.id === petId);
         
         if (pet && pet.ownerId == currentUser.user.userId) {
@@ -308,7 +360,6 @@ async function handlePetRegistration(event) {
         return;
     }
 
-    // Se estiver editando, envia a URL da foto antiga para o backend
     if (petId) {
         const pet = pets.find(p => p.id === parseInt(petId));
         if (pet && pet.photoUrl) {
@@ -334,7 +385,6 @@ async function handlePetRegistration(event) {
         form.reset();
         document.getElementById('petEditId').value = '';
         
-        // Recarrega a lista de pets correta
         setTimeout(() => {
             if (responseData.type === 'adoption') {
                 showPage('adoption');
@@ -358,14 +408,13 @@ async function handlePostSubmit(event) {
 
     const form = event.target;
     const postId = document.getElementById('postEditId').value;
-    const formData = new FormData(form); // Usa FormData
+    const formData = new FormData(form); 
 
     if (!formData.get('content')) {
         showMessage('postMessage', 'O conteúdo do post não pode estar vazio.', 'error');
         return;
     }
     
-    // Lógica para manter a foto antiga
     if (postId) {
         const post = blogPosts.find(p => p.id === parseInt(postId));
         if (post && post.photoUrl) {
@@ -387,23 +436,21 @@ async function handlePostSubmit(event) {
         showMessage('postMessage', `Post ${message} com sucesso!`, 'success');
 
         toggleNewPostForm(false);
-        loadBlogPosts(); // Recarrega o feed
+        loadBlogPosts(); 
     } catch (error) {
         showMessage('postMessage', `Erro: ${error.message}`, 'error');
     }
 }
-
 
 async function loadAdoptionPets() {
     const container = document.getElementById('adoptionPets');
     container.innerHTML = `<div class="loading"><div class="spinner"></div></div>`;
     
     try {
-        // Passa filtros pela URL
         const filters = getPetFilters();
         const adoptionPets = await apiFetch(`/pets/adoption?${filters}`);
         
-        pets = adoptionPets; // Atualiza o cache local
+        pets = adoptionPets; 
         
         if (adoptionPets.length === 0) {
             container.innerHTML = `
@@ -430,8 +477,8 @@ async function loadMyPets() {
     container.innerHTML = `<div class="loading"><div class="spinner"></div></div>`;
 
     try {
-        const myPets = await apiFetch('/pets/mypets'); // Rota protegida
-        pets = myPets; // Atualiza o cache local
+        const myPets = await apiFetch('/pets/mypets'); 
+        pets = myPets; 
 
         if (myPets.length === 0) {
             container.innerHTML = `
@@ -464,9 +511,7 @@ function getStatusIndicator(pet) {
 
 function displayPets(petsToShow, container, isAdoptionView) {
     container.innerHTML = petsToShow.map(pet => {
-        const ownerName = pet.ownerName || 'Dono';
         const upcomingVaccines = getUpcomingVaccines(pet);
-        
         const petImage = pet.photoUrl ? `<img src="${pet.photoUrl}" alt="Foto de ${pet.name}">` : getSpeciesIcon(pet.species);
         
         let actionButtons = '';
@@ -477,7 +522,7 @@ function displayPets(petsToShow, container, isAdoptionView) {
             } else {
                 actionButtons += ` <button class="btn btn-small" onclick="showPage('login')" style="background: #a0aec0;">Logar para Contato</button>`;
             }
-        } else { // My Pets View
+        } else {
             actionButtons = `<button class="btn btn-small" onclick="openPetProfile(${pet.id})">Ver Perfil</button>`;
             
             if (currentUser && pet.ownerId == currentUser.user.userId) {
@@ -545,7 +590,7 @@ async function markAsAdopted(petId) {
     if (confirm("Você tem certeza que deseja marcar este pet como adotado? Esta ação removerá o pet da lista pública de adoção.")) {
         try {
             await apiFetch(`/pets/${petId}/adopt`, { method: 'PUT' });
-            loadMyPets(); // Recarrega a lista
+            loadMyPets(); 
         } catch (error) {
             alert(`Erro: ${error.message}`);
         }
@@ -579,18 +624,12 @@ function clearFilters() {
     loadAdoptionPets();
 }
 
-
-// ===================================================================
-// 6. GERENCIAMENTO DE SERVIÇOS
-// ===================================================================
-
 async function loadServices() {
     const container = document.getElementById('servicesGrid'); 
     if (!container) return;
     
     container.innerHTML = `<div class="loading"><div class="spinner"></div></div>`;
     
-    // Lê os filtros do DOM
     const searchTerm = document.getElementById('serviceSearchFilter')?.value || '';
     const category = document.getElementById('serviceCategoryFilter')?.value || '';
     
@@ -599,9 +638,8 @@ async function loadServices() {
     if (category) params.append('category', category);
 
     try {
-        // Passa os filtros para a API
         const services = await apiFetch(`/services?${params.toString()}`);
-        serviceProviders = services; // Atualiza cache local
+        serviceProviders = services; 
         displayServiceProviders(services, container);
     } catch (error) {
         container.innerHTML = `<div class="empty-state"><h3>Erro ao carregar serviços.</h3></div>`;
@@ -633,7 +671,6 @@ function displayServiceProviders(providersToShow, container) {
                         📞 Ligar (${provider.phone})
                     </a>`;
                 
-                // Botão de API de Mapas
                 if (provider.latitude && provider.longitude) {
                     providerActionsContent += `
                         <button class="btn btn-small" onclick='showServiceMapInModal(${JSON.stringify(provider)})' style="background: #3182ce;">
@@ -697,7 +734,6 @@ function showServiceRegisterPage(serviceId = null) {
         button.textContent = 'Cadastrar Serviço';
         hiddenId.value = '';
         deleteButtonWrapper.style.display = 'none';
-        // Tenta pegar localização (API Unidade IV)
         getDeviceLocationForServiceForm();
     } else {
         const service = serviceProviders.find(s => s.id === serviceId);
@@ -735,7 +771,6 @@ async function handleServiceRegistration(event) {
     const serviceData = Object.fromEntries(formData);
     const serviceId = document.getElementById('serviceEditId').value;
     
-    // Pega lat/lon dos campos escondidos
     serviceData.latitude = document.getElementById('serviceLatitude')?.value || null;
     serviceData.longitude = document.getElementById('serviceLongitude')?.value || null;
 
@@ -783,14 +818,12 @@ async function deleteServiceFromForm() {
     }
 }
 
-// ===================================================================
-// 7. GERENCIAMENTO DE VACINAS
-// ===================================================================
-
 async function handleVaccination(event) {
     event.preventDefault();
     
     const petId = parseInt(document.getElementById('vaccinePetId').value);
+    const vaccineId = document.getElementById('vaccineEditId').value; // ID para edição
+
     const name = document.getElementById('vaccineName').value.trim();
     const date = document.getElementById('vaccineDate').value;
     const nextDate = document.getElementById('vaccineNext').value;
@@ -811,25 +844,41 @@ async function handleVaccination(event) {
     };
 
     try {
-        const newVaccine = await apiFetch(`/pets/${petId}/vaccines`, {
-            method: 'POST',
-            body: JSON.stringify(vaccineData)
-        });
+        let updatedVaccine;
+        if (vaccineId) {
+            // Edição
+            updatedVaccine = await apiFetch(`/pets/vaccines/${vaccineId}`, {
+                method: 'PUT',
+                body: JSON.stringify(vaccineData)
+            });
+        } else {
+            // Criação
+            updatedVaccine = await apiFetch(`/pets/${petId}/vaccines`, {
+                method: 'POST',
+                body: JSON.stringify(vaccineData)
+            });
+        }
         
-        // Atualiza o pet no array local
         const pet = pets.find(p => p.id === petId);
         if (pet) {
-            pet.vaccines.push(newVaccine);
+            if (vaccineId) {
+                const index = pet.vaccines.findIndex(v => v.id === parseInt(vaccineId));
+                if (index !== -1) pet.vaccines[index] = updatedVaccine;
+            } else {
+                pet.vaccines.push(updatedVaccine);
+            }
+             // Reordena por data
+             pet.vaccines.sort((a, b) => new Date(b.date) - new Date(a.date));
         }
         
         closeVaccinationModal();
-        openPetProfile(petId); // Reabre o perfil com a vacina
+        openPetProfile(petId); 
         
         if (document.getElementById('my-pets').classList.contains('active')) {
-            loadMyPets(); // Recarrega a lista para mostrar o alerta
+            loadMyPets(); 
         }
     } catch (error) {
-        alert(`Erro ao adicionar vacina: ${error.message}`);
+        alert(`Erro ao salvar vacina: ${error.message}`);
     }
 }
 
@@ -853,10 +902,6 @@ function isVaccineUpcoming(vaccine) {
     const nextDate = new Date(vaccine.nextDate);
     return nextDate >= today && nextDate <= thirtyDaysFromNow;
 }
-
-// ===================================================================
-// 8. GERENCIAMENTO DE MODAIS
-// ===================================================================
 
 function openPetProfile(petId) {
     const pet = pets.find(p => p.id === petId);
@@ -900,8 +945,6 @@ function openPetProfile(petId) {
             <p style="color: #718096;">Cadastrado em ${formatDate(pet.createdAt)}</p>
             ${getStatusIndicator(pet)}
         </div>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 25px;">
-            </div>
         <div style="margin-bottom: 25px;">
             <h4 style="color: #2d3748; margin-bottom: 10px; font-size: 1.1rem;">📝 Sobre ${pet.name}</h4>
             <p style="color: #4a5568; line-height: 1.6; background: #f7fafc; padding: 15px; border-radius: 10px;">${pet.description}</p>
@@ -915,13 +958,20 @@ function openPetProfile(petId) {
             <div class="vaccination-list">
                 ${pet.vaccines.length > 0 ? pet.vaccines.map(vaccine => `
                     <div class="vaccination-item ${isVaccineUpcoming(vaccine) ? 'upcoming' : ''}">
-                        <div class="vaccination-info">
-                            <h4>💉 ${vaccine.name}</h4>
-                            <p>Aplicada em ${formatDate(vaccine.date)}</p>
+                        <div style="flex: 1;">
+                            <div class="vaccination-info">
+                                <h4>💉 ${vaccine.name}</h4>
+                                <p>Aplicada em ${formatDate(vaccine.date)}</p>
+                            </div>
+                            <div class="vaccination-date ${isVaccineUpcoming(vaccine) ? 'upcoming' : ''}" style="margin-top: 5px; display: inline-block;">
+                                ${vaccine.nextDate ? `Próxima: ${formatDate(vaccine.nextDate)}` : 'Dose única'}
+                            </div>
                         </div>
-                        <div class="vaccination-date ${isVaccineUpcoming(vaccine) ? 'upcoming' : ''}">
-                            ${vaccine.nextDate ? `Próxima: ${formatDate(vaccine.nextDate)}` : 'Dose única'}
+                        ${isOwner ? `
+                        <div class="vaccination-actions">
+                            <button class="btn-icon edit" onclick='editVaccine(${JSON.stringify(vaccine)}, ${pet.id})' title="Editar">✏️</button>
                         </div>
+                        ` : ''}
                     </div>
                 `).join('') : `
                     <div style="text-align: center; padding: 40px; color: #718096;">
@@ -942,8 +992,57 @@ function closePetModal() {
 
 function openVaccinationModal(petId) {
     document.getElementById('vaccinePetId').value = petId;
+    document.getElementById('vaccineEditId').value = ''; // Limpa ID de edição
     document.getElementById('vaccinationForm').reset();
+    document.getElementById('vaccinationModalTitle').textContent = "Adicionar Vacina";
+    document.getElementById('vaccinationFormButton').textContent = "Adicionar Vacina";
+    document.getElementById('deleteVaccineButtonWrapper').style.display = 'none';
+    
     document.getElementById('vaccinationModal').classList.add('active');
+}
+
+function editVaccine(vaccine, petId) {
+    document.getElementById('vaccinePetId').value = petId;
+    document.getElementById('vaccineEditId').value = vaccine.id;
+    
+    document.getElementById('vaccineName').value = vaccine.name;
+    document.getElementById('vaccineDate').value = vaccine.date.split('T')[0];
+    if (vaccine.nextDate) document.getElementById('vaccineNext').value = vaccine.nextDate.split('T')[0];
+    document.getElementById('vaccineVet').value = vaccine.vet || '';
+    document.getElementById('vaccineNotes').value = vaccine.notes || '';
+
+    document.getElementById('vaccinationModalTitle').textContent = "Editar Vacina";
+    document.getElementById('vaccinationFormButton').textContent = "Salvar Alterações";
+    document.getElementById('deleteVaccineButtonWrapper').style.display = 'block';
+
+    document.getElementById('vaccinationModal').classList.add('active');
+}
+
+async function deleteVaccine() {
+    const vaccineId = document.getElementById('vaccineEditId').value;
+    const petId = parseInt(document.getElementById('vaccinePetId').value);
+
+    if (!vaccineId) return;
+
+    if (confirm("Tem certeza que deseja excluir esta vacina?")) {
+        try {
+            await apiFetch(`/pets/vaccines/${vaccineId}`, { method: 'DELETE' });
+            
+            // Remove do array local
+            const pet = pets.find(p => p.id === petId);
+            if (pet) {
+                pet.vaccines = pet.vaccines.filter(v => v.id !== parseInt(vaccineId));
+            }
+            
+            closeVaccinationModal();
+            openPetProfile(petId);
+            if (document.getElementById('my-pets').classList.contains('active')) {
+                loadMyPets(); 
+            }
+        } catch (error) {
+            alert(`Erro ao excluir vacina: ${error.message}`);
+        }
+    }
 }
 
 function closeVaccinationModal() {
@@ -976,10 +1075,6 @@ function showContact(ownerId, ownerName, ownerPhone, ownerEmail) {
 function closeContactModal() {
     document.getElementById('contactModal').classList.remove('active');
 }
-
-// ===================================================================
-// 9. GERENCIAMENTO DO BLOG
-// ===================================================================
 
 function toggleNewPostForm(show) {
     const postContainer = document.getElementById('new-post-container');
@@ -1015,7 +1110,7 @@ async function loadBlogPosts() {
     
     try {
         const posts = await apiFetch('/blog');
-        blogPosts = posts; // Atualiza cache local
+        blogPosts = posts; 
         displayBlogPosts(posts, feedContainer);
     } catch (error) {
         feedContainer.innerHTML = `<div class="empty-state"><h3>Erro ao carregar o blog.</h3></div>`;
@@ -1122,7 +1217,6 @@ function showPostForm(postId = null) {
         button.textContent = 'Publicar';
         hiddenId.value = '';
         deleteButtonWrapper.style.display = 'none';
-        // API Unidade IV: Preenche localização ao criar novo post
         getDeviceLocationForPostForm();
     } else {
         const post = blogPosts.find(p => p.id === postId);
@@ -1167,9 +1261,8 @@ async function toggleLike(postId) {
     }
 
     try {
-        // A API cuida da lógica de adicionar/remover
         await apiFetch(`/blog/${postId}/like`, { method: 'POST' });
-        loadBlogPosts(); // Simples, mas recarrega tudo
+        loadBlogPosts(); 
         
     } catch (error) {
         alert(`Erro ao curtir: ${error.message}`);
@@ -1196,21 +1289,12 @@ async function handleCommentSubmit(event, postId) {
         });
         
         input.value = '';
-        loadBlogPosts(); // Recarrega para mostrar o novo comentário
+        loadBlogPosts(); 
     } catch (error) {
         alert(`Erro ao comentar: ${error.message}`);
     }
 }
 
-
-// ===================================================================
-// 10. INTEGRAÇÃO APIs UNIDADE IV (Geolocalização e Mapas)
-// ===================================================================
-
-/**
- * API de Geolocalização (Sensor)
- * Tenta obter a localização e preencher o formulário de POST.
- */
 function getDeviceLocationForPostForm() {
     const locationInput = document.getElementById('postLocation');
     if (!locationInput) return;
@@ -1221,7 +1305,6 @@ function getDeviceLocationForPostForm() {
             async (position) => {
                 const lat = position.coords.latitude;
                 const lon = position.coords.longitude;
-                // Usa API de "Geocoding Reverso" (OpenStreetMap)
                 try {
                     const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
                     const data = await response.json();
@@ -1238,17 +1321,12 @@ function getDeviceLocationForPostForm() {
                 console.warn("Erro ao obter localização:", error.message);
                 locationInput.placeholder = "Ex: Manaus, AM";
             },
-            { timeout: 5000 } // Timeout de 5 segundos
+            { timeout: 5000 } 
         );
     }
 }
 
-/**
- * API de Geolocalização (Sensor)
- * Tenta obter lat/lon e preencher o formulário de SERVIÇO.
- */
 function getDeviceLocationForServiceForm() {
-    // Adiciona campos hidden ao formulário de serviço
     const form = document.getElementById('serviceRegisterForm');
     if (!document.getElementById('serviceLatitude')) {
         form.insertAdjacentHTML('beforeend', `
@@ -1277,10 +1355,6 @@ function getDeviceLocationForServiceForm() {
     }
 }
 
-/**
- * API de Mapas (Leaflet.js)
- * Mostra o mapa do serviço no modal de contato.
- */
 function showServiceMapInModal(service) {
     if (!service.latitude || !service.longitude) {
         alert('Este serviço não possui localização no mapa.');
@@ -1298,8 +1372,6 @@ function showServiceMapInModal(service) {
     
     document.getElementById('contactModal').classList.add('active');
 
-    // Leaflet precisa que o container esteja visível para renderizar
-    // Usamos um timeout para garantir
     setTimeout(() => {
         try {
             const map = L.map('serviceMapContainer').setView([service.latitude, service.longitude], 16);
@@ -1318,11 +1390,6 @@ function showServiceMapInModal(service) {
     }, 100);
 }
 
-
-// ===================================================================
-// 11. INICIALIZAÇÃO E EVENT LISTENERS
-// ===================================================================
-
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('loginForm').addEventListener('submit', handleLogin);
     document.getElementById('registerForm').addEventListener('submit', handleRegister);
@@ -1330,6 +1397,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('vaccinationForm').addEventListener('submit', handleVaccination);
     document.getElementById('serviceRegisterForm').addEventListener('submit', handleServiceRegistration);
     document.getElementById('postForm').addEventListener('submit', handlePostSubmit);
+    document.getElementById('profileForm').addEventListener('submit', handleProfileUpdate);
 
     document.querySelectorAll('.modal').forEach(modal => {
         modal.addEventListener('click', function(e) {
@@ -1339,19 +1407,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Define data máxima da vacina
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('vaccineDate').max = today;
 
-    checkLocalStorageLogin(); // Verifica se já está logado
+    checkLocalStorageLogin(); 
     updateAuthButtons();
-    loadAdoptionPets(); // Carrega a página inicial de adoção
+    loadAdoptionPets(); 
 });
-
-
-
-
-
-
-
-
