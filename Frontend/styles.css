@@ -1309,16 +1309,6 @@ footer {
     }
 
    .features {
-        grid-template-columns: 1fr; /* Muda para 1 coluna única */
-        gap: 25px; /* Reduz um pouco o espaço entre eles */
-        padding: 40px 20px; /* Ajusta o espaçamento interno */
-    }
-    
-    /* Opcional: Ajuste para o container da imagem dentro do card */
-    .feature-card {
-        padding: 30px 20px;
-    }
-   .features {
         display: flex;               /* Coloca os itens lado a lado */
         overflow-x: auto;            /* Habilita a rolagem horizontal */
         scroll-snap-type: x mandatory; /* Faz o "snap" (imã) ao rolar */
@@ -1341,6 +1331,7 @@ footer {
         flex-shrink: 0;              /* Impede que o card encolha */
     }
 }
+
 
 
 
