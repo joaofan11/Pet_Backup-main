@@ -1318,6 +1318,29 @@ footer {
     .feature-card {
         padding: 30px 20px;
     }
+   .features {
+        display: flex;               /* Coloca os itens lado a lado */
+        overflow-x: auto;            /* Habilita a rolagem horizontal */
+        scroll-snap-type: x mandatory; /* Faz o "snap" (imã) ao rolar */
+        gap: 20px;                   /* Espaço entre os cards */
+        padding: 40px 20px;          /* Espaçamento interno */
+        
+        /* Opcional: esconde a barra de rolagem para ficar mais limpo */
+        scrollbar-width: none;       /* Firefox */
+        -ms-overflow-style: none;    /* IE and Edge */
+    }
+
+    /* Para esconder a barra de rolagem no Chrome/Safari */
+    .features::-webkit-scrollbar {
+        display: none;
+    }
+
+    .feature-card {
+        min-width: 85%;              /* Define que cada card ocupa 85% da tela */
+        scroll-snap-align: center;   /* Centraliza o card ao soltar */
+        flex-shrink: 0;              /* Impede que o card encolha */
+    }
 }
+
 
 
