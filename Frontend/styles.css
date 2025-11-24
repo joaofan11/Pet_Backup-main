@@ -1307,5 +1307,17 @@ footer {
         padding: 20px;
         margin: 10px;
     }
+
+   .features {
+        grid-template-columns: 1fr; /* Muda para 1 coluna única */
+        gap: 25px; /* Reduz um pouco o espaço entre eles */
+        padding: 40px 20px; /* Ajusta o espaçamento interno */
+    }
+    
+    /* Opcional: Ajuste para o container da imagem dentro do card */
+    .feature-card {
+        padding: 30px 20px;
+    }
 }
+
 
