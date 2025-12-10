@@ -3,10 +3,16 @@ const db = require('../db');
 const checkAuth = require('../middleware/checkAuth');
 const { uploadPost } = require('../config/cloudinary');
 
+// Função helper para pegar apenas dois primeiros nomes
+function getShortName(fullName) {
+    if (!fullName) return '';
+    const parts = fullName.trim().split(' ');
+    return parts.slice(0, 2).join(' ');
+}
+
 // GET /api/blog (Público)
 router.get('/', async (req, res) => {
     try {
-        // CORREÇÃO: Adicionado u.photo_url AS "authorPhoto"
         const postRes = await db.query(`
             SELECT p.id, p.content, p.location, 
                    p.owner_id AS "ownerId", 
@@ -21,6 +27,9 @@ router.get('/', async (req, res) => {
         const posts = postRes.rows;
 
         for (const post of posts) {
+            // Formata o nome para apenas dois primeiros nomes
+            post.ownerName = getShortName(post.ownerName);
+            
             const commentRes = await db.query(`
                 SELECT c.id, c.content, 
                        c.post_id AS "postId", 
@@ -33,7 +42,12 @@ router.get('/', async (req, res) => {
                 WHERE c.post_id = $1 
                 ORDER BY c.created_at ASC
             `, [post.id]);
-            post.comments = commentRes.rows;
+            
+            // Formata o nome nos comentários também
+            post.comments = commentRes.rows.map(comment => ({
+                ...comment,
+                ownerName: getShortName(comment.ownerName)
+            }));
 
             const likeRes = await db.query(`SELECT user_id AS "userId" FROM likes WHERE post_id = $1`, [post.id]);
             post.likes = likeRes.rows.map(l => l.userId);
@@ -63,14 +77,13 @@ router.post('/', checkAuth, uploadPost.single('photo'), async (req, res) => {
             [req.userData.userId, content, location, photoUrl]
         );
         
-        // CORREÇÃO: Busca a foto do usuário atual para retornar no response imediato
         const userRes = await db.query("SELECT photo_url FROM users WHERE id = $1", [req.userData.userId]);
         const authorPhoto = userRes.rows[0]?.photo_url || null;
 
         const finalPost = { 
             ...newPost.rows[0], 
-            ownerName: req.userData.name, 
-            authorPhoto: authorPhoto, // Inclui a foto no retorno
+            ownerName: getShortName(req.userData.name), // Formata aqui também
+            authorPhoto: authorPhoto,
             comments: [], 
             likes: [] 
         };
@@ -159,7 +172,10 @@ router.post('/:postId/comment', checkAuth, async (req, res) => {
             [postId, userId, content]
         );
         
-        const finalComment = { ...newComment.rows[0], ownerName: req.userData.name };
+        const finalComment = { 
+            ...newComment.rows[0], 
+            ownerName: getShortName(req.userData.name) // Formata aqui também
+        };
         res.status(201).json(finalComment);
     } catch (err) { 
         console.error(err); 
