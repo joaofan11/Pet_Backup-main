@@ -595,7 +595,7 @@ nav {
 
 .service-card .btn-small {
     width: 100%;
-    flex-shrink: 0; /* Impede que o botão encolha */
+    flex-shrink: 0;
 }
 
 .service-contact {
@@ -629,14 +629,14 @@ nav {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 15px;
-    flex-wrap: wrap; /* Permite quebrar linha se faltar espaço */
+    flex-wrap: wrap;
     gap: 10px;
 }
 
 .vaccination-header h3 {
     margin: 0;
     color: #2d3748;
-    white-space: nowrap; /* Impede que o título quebre de forma feia */
+    white-space: nowrap;
 }
 
 .vaccination-list {
@@ -656,8 +656,6 @@ nav {
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     transition: transform 0.2s ease;
 }
-
-
 
 .vaccination-item:hover {
     transform: translateX(5px);
@@ -893,16 +891,16 @@ nav {
 }
 
 /* ===================================================================
-   8. ESTILOS DO BLOG (NOVA SEÇÃO)
+   8. ESTILOS DO BLOG
    =================================================================== */
 
 .blog-feed {
-    max-width: 800px; /* Mais largo para um feed */
+    max-width: 800px;
     margin: 30px auto;
     display: flex;
     flex-direction: column;
     gap: 25px;
-    padding-bottom: 40px; /* Espaço no final */
+    padding-bottom: 40px;
 }
 
 .post-card {
@@ -911,7 +909,6 @@ nav {
     box-shadow: 0 8px 25px rgba(0,0,0,0.08);
     border: 1px solid #e2e8f0;
     overflow: hidden;
-    /* Animação sutil ao carregar */
     animation: slideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
@@ -984,7 +981,6 @@ nav {
     line-height: 1.7;
     margin-bottom: 15px;
     font-size: 1rem;
-    /* Garante que quebras de linha do textarea sejam mantidas */
     white-space: pre-wrap; 
 }
 
@@ -1003,13 +999,11 @@ nav {
     max-width: 100%;
     height: auto;
     max-height: 600px;
-    object-fit: contain; /* Ajusta a imagem sem cortar */
+    object-fit: contain;
     margin-top: 20px;
     border-radius: 15px;
-    background-color: #f7fafc; /* Fundo sutil se a imagem não preencher tudo */
+    background-color: #f7fafc;
 }
-
-/* --- LIKES E COMENTÁRIOS --- */
 
 .post-footer {
     display: flex;
@@ -1036,285 +1030,6 @@ nav {
     border-color: #cbd5e0;
 }
 
-/* Estilo do botão quando está "curtido" */
 .like-btn.active {
-    background: #fed7d7; /* Fundo vermelho claro */
-    border-color: #f56565; /* Borda vermelha */
-    color: #c53030; /* Texto vermelho escuro */
-}
-
-.like-count {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #718096;
-}
-
-.post-comments {
-    padding: 0 25px 25px;
-    border-top: 1px solid #edf2f7;
-    background: #fcfcfc; /* Fundo levemente diferente */
-}
-
-.post-comments-list {
-    max-height: 300px; /* Limita a altura da lista de comentários */
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 20px 0;
-}
-
-.comment-item {
-    background: #f7fafc;
-    padding: 12px 15px;
-    border-radius: 12px;
-    border-left: 3px solid #75b2c3;
-    font-size: 0.9rem;
-}
-
-.comment-author {
-    display: block;
-    font-weight: 700;
-    color: #2d3748;
-    margin-bottom: 3px;
-}
-
-.comment-content {
-    color: #4a5568;
-    line-height: 1.5;
-    word-wrap: break-word; /* Garante que comentários longos quebrem a linha */
-}
-
-.post-comment-form {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
-    padding-top: 15px;
-    border-top: 1px solid #edf2f7;
-}
-
-.comment-input {
-    flex-grow: 1; /* Ocupa o espaço disponível */
-    padding: 12px 15px;
-    border: 2px solid #e2e8f0;
-    border-radius: 30px; /* Input arredondado */
-    font-size: 0.9rem;
-    background: white;
-}
-
-.comment-input:focus {
-    outline: none;
-    border-color: #75b2c3;
-}
-
-.comment-submit-btn {
-    padding: 10px 18px;
-    border-radius: 30px;
-    border: none;
-    background: linear-gradient(135deg, #75b2c3, #80b37a);
-    color: white;
-    font-weight: 600;
-    cursor: pointer;
-    transition: transform 0.2s ease;
-}
-
-.comment-submit-btn:hover {
-    transform: scale(1.05);
-}
-
-
-/* ===================================================================
-   9. RODAPÉ
-   =================================================================== */
-
-footer {
-    text-align: center;
-    padding: 20px;
-    margin-top: 10px;
-    color: white;
-    font-size: 0.9rem;
-    font-weight: 500;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-}
-
-/* ===================================================================
-   NOVOS ESTILOS (PERFIL E VACINAS)
-   Adicione isto ANTES das Media Queries para organização
-   =================================================================== */
-
-.profile-avatar-large {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #75b2c3, #99b06a);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto;
-    font-size: 4rem;
-    color: white;
-    font-weight: 700;
-    overflow: hidden;
-    border: 4px solid white;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-}
-
-.profile-avatar-large img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.vaccination-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
-}
-
-.btn-icon {
-    background: transparent;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 5px 10px;
-    cursor: pointer;
-    font-size: 0.85rem;
-    transition: all 0.2s;
-}
-
-.btn-icon.edit:hover {
-    background: #ebf8ff;
-    color: #3182ce;
-    border-color: #3182ce;
-}
-
-.btn-icon.delete:hover {
-    background: #fff5f5;
-    color: #e53e3e;
-    border-color: #e53e3e;
-}
-
-.user-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: #e2e8f0;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-}
-
-.user-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-/* ===================================================================
-   10. MEDIA QUERIES (Responsivo - CORRIGIDO)
-   =================================================================== */
-
-@media (max-width: 900px) {
-    /* Ajuste do Menu para Tablets/Telas Médias */
-    nav {
-        flex-direction: column;
-        gap: 20px;
-        padding: 1.5rem;
-    }
-
-    .nav-links {
-        justify-content: center;
-        width: 100%;
-        gap: 10px;
-        margin-top: 10px;
-    }
-
-    .user-info {
-        width: 100%;
-        justify-content: center;
-        margin-bottom: 10px;
-    }
-}
-
-@media (max-width: 600px) {
-    /* Ajustes Gerais para Mobile */
-    .container {
-        padding: 10px;
-    }
-
-    .hero h1 {
-        font-size: 2rem;
-    }
-
-    .cta-buttons {
-        flex-direction: column;
-        align-items: stretch; /* Botões ocupam largura total */
-    }
-
-    .filters {
-        grid-template-columns: 1fr;
-        gap: 15px;
-        padding: 20px;
-    }
-
-    /* Ajuste da Grade de Pets */
-    .pets-grid {
-        grid-template-columns: 1fr; /* Uma coluna só */
-        padding: 10px;
-        gap: 20px;
-    }
-    
-    .pet-card {
-        margin: 0;
-    }
-
-    /* --- CORREÇÃO DO BOTÃO CORTADO --- */
-    .pet-actions {
-        flex-direction: column; /* Empilha os botões verticalmente */
-        gap: 10px;
-    }
-
-    .pet-actions .btn {
-        width: 100%;
-        font-size: 0.95rem;
-        padding: 12px;
-    }
-
-    /* Ajuste do Blog */
-    .blog-feed {
-        padding: 0 10px 30px;
-    }
-    
-    .post-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-        padding: 15px 20px 10px;
-    }
-
-    .post-body {
-        padding: 0 20px 20px;
-    }
-    
-    .post-actions-menu {
-        align-self: flex-end;
-    }
-    
-    /* Ajuste dos Modais */
-    .modal-content {
-        width: 95%;
-        padding: 20px;
-        margin: 10px;
-    }
-
-.features {
-        grid-template-columns: 1fr; 
-        gap: 25px; 
-        padding: 40px 20px; 
-    }
-    
-.feature-card {
-        padding: 30px 20px;
-    }
-}
+    background: #fed7d7;
+    border-color: #f
