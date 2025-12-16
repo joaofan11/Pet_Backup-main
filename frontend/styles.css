@@ -418,14 +418,59 @@ nav {
 
 /* --- Features Grid (Landing) --- */
 .features {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    display: flex;
+    width: 100%;
+    overflow-x: auto;
     gap: 40px;
     padding: 80px 40px;
     background: linear-gradient(to bottom, #f7fafc, #edf2f7);
+    scroll-behavior: smooth;
+    anchor-name: --carrossel;
+    scroll-snap-type: x mandatory;
+    scroll-marker-group: after;
+}
+
+.features::scroll-marker-group {
+    display: flex;
+    justify-content: center;
+    gap: .5em;
+    transform: translateY(-30px);
+}
+
+.features::-webkit-scrollbar {
+    display: none; /* Esconde a barra de rolagem no WebKit */
+}
+
+.features::scroll-button(left), .features::scroll-button(right) {
+    content: "←";
+    border: none;
+    background: #75b2c3;
+    color: white;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    font-size: 3rem;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    cursor: pointer;
+    position: fixed;
+    position-anchor: --carrossel;
+    position-area: left center;
+    translate: 120%;
+}
+
+.features::scroll-button(right) {
+    content: "→";
+    position-area: right center;
+    translate: -120%;
+}
+
+.features::scroll-button(left):disabled, .features::scroll-button(right):disabled {
+    opacity: 0.8;
+    cursor: auto;
 }
 
 .feature-card {
+    flex: 0 0 20em;
     text-align: center;
     padding: 50px 30px;
     border-radius: 20px;
@@ -433,6 +478,19 @@ nav {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 4px 20px rgba(0,0,0,0.08);
     border: 1px solid rgba(0,0,0,0.05);
+    scroll-snap-align: center;
+}
+
+.feature-card::scroll-marker {
+    content: '';
+    height: 1em;
+    width: 1em;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+}
+
+.feature-card::scroll-marker:target-current {
+    background-color: #75b2c3;
 }
 
 .feature-card:hover {
@@ -1238,7 +1296,7 @@ footer {
     }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 750px) {
     /* Ajustes Gerais para Mobile */
     .container {
         padding: 10px;
@@ -1310,7 +1368,6 @@ footer {
     }
 
 .features {
-        grid-template-columns: 1fr; 
         gap: 25px; 
         padding: 40px 20px; 
     }
