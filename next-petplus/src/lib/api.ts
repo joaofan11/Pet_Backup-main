@@ -6,9 +6,11 @@ export async function apiFetch<T>(
 ): Promise<T> {
   const headers: Record<string, string> = {};
 
-  const token = localStorage.getItem('petplus_token');
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('petplus_token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
   }
 
   if (!options.isFormData) {

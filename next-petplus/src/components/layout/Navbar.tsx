@@ -1,116 +1,69 @@
-// src/components/layout/Navbar.tsx
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import { NAV_LINKS } from '@/lib/constants';
 
-export function Navbar() {
+export default function Navbar() {
+  const { user, isAuthenticated, logout } = useAuth();
   const pathname = usePathname();
-  const { user, logout } = useAuth();
 
-  const isActive = (href: string) => pathname === href;
+  const isActive = (path: string) => pathname === path;
+
+  const navLinkClass = (path: string) =>
+    `px-5 py-2.5 rounded-full font-semibold text-sm transition-all duration-300 border-2 border-transparent ${
+      isActive(path)
+        ? 'gradient-primary text-primary-foreground shadow-md'
+        : 'text-muted-foreground hover:gradient-primary hover:text-primary-foreground hover:-translate-y-0.5 hover:shadow-lg'
+    }`;
 
   return (
-    <nav className="mx-auto mb-6 flex max-w-[1400px] flex-wrap items-center justify-between gap-4 rounded-[20px] border border-white/20 bg-white/95 px-8 py-6 shadow-[0_8px_32px_rgba(0,0,0,0.1)] backdrop-blur-[15px]">
-      {/* Logo */}
+    <nav className="bg-card/95 backdrop-blur-md px-6 py-4 rounded-xl mb-6 flex justify-between items-center flex-wrap border border-border/20 shadow-card">
       <Link href="/" className="flex items-center gap-3">
-        <Image src="/logo.png" alt="Logo PetPlus" width={50} height={50} />
-        <span className="bg-gradient-to-r from-[#75b2c3] to-[#99b06a] bg-clip-text text-2xl font-extrabold text-transparent">
+        <img src="/logo.png" alt="Logo PetPlus" width={42} height={42} />
+        <span className="text-2xl font-extrabold bg-gradient-to-r from-petplus-teal to-petplus-green bg-clip-text text-transparent">
           PetPlus
         </span>
       </Link>
 
-      {/* Nav + User */}
-      <div className="flex flex-wrap items-center gap-5">
-        {/* Avatar (logado) */}
-        {user && (
-          <Link
-            href="/profile"
-            className="flex items-center gap-2.5 rounded-[20px] bg-[#75b2c3]/10 px-4 py-2 text-sm font-semibold text-[#75b2c3]"
-          >
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#75b2c3] text-sm font-bold text-white">
+      <div className="flex items-center gap-3 flex-wrap">
+        {isAuthenticated && user && (
+          <div className="flex items-center gap-2.5 px-4 py-2 bg-accent rounded-full">
+            <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-primary text-primary-foreground font-bold text-sm cursor-pointer">
               {user.photoUrl ? (
-                <Image
-                  src={user.photoUrl}
-                  alt="Avatar"
-                  width={32}
-                  height={32}
-                  className="rounded-full object-cover"
-                />
+                <img src={user.photoUrl} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
                 user.name.charAt(0).toUpperCase()
               )}
             </div>
-            <span>{user.name.split(' ')[0]}</span>
-          </Link>
+            <span className="text-sm font-semibold text-accent-foreground">
+              {user.name.split(' ')[0]}
+            </span>
+          </div>
         )}
 
-        {/* Links de navegação */}
-        <div className="flex flex-wrap gap-3">
-          {NAV_LINKS.public.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`rounded-[30px] border-2 border-transparent px-6 py-3 text-[0.95rem] font-semibold transition-all duration-300 ${
-                isActive(link.href)
-                  ? 'bg-gradient-to-r from-[#75b2c3] to-[#80b37a] text-white shadow-[0_4px_15px_rgba(117,178,195,0.3)]'
-                  : 'text-[#4a5568] hover:-translate-y-0.5 hover:bg-gradient-to-r hover:from-[#75b2c3] hover:to-[#80b37a] hover:text-white hover:shadow-[0_8px_25px_rgba(117,178,195,0.4)]'
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
+        <div className="flex gap-2 flex-wrap">
+          <Link href="/" className={navLinkClass('/')}>Home</Link>
+          <Link href="/adoption" className={navLinkClass('/adoption')}>Adotar</Link>
+          <Link href="/services" className={navLinkClass('/services')}>Serviços</Link>
+          <Link href="/blog" className={navLinkClass('/blog')}>Blog</Link>
 
-          {/* Links autenticados */}
-          {user &&
-            NAV_LINKS.authenticated.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`rounded-[30px] border-2 border-transparent px-6 py-3 text-[0.95rem] font-semibold transition-all duration-300 ${
-                  isActive(link.href)
-                    ? 'bg-gradient-to-r from-[#75b2c3] to-[#80b37a] text-white shadow-[0_4px_15px_rgba(117,178,195,0.3)]'
-                    : 'text-[#4a5568] hover:-translate-y-0.5 hover:bg-gradient-to-r hover:from-[#75b2c3] hover:to-[#80b37a] hover:text-white hover:shadow-[0_8px_25px_rgba(117,178,195,0.4)]'
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
-
-          {/* Auth buttons */}
-          {!user ? (
+          {isAuthenticated ? (
             <>
-              <Link
-                href="/login"
-                className={`rounded-[30px] border-2 border-transparent px-6 py-3 text-[0.95rem] font-semibold transition-all duration-300 ${
-                  isActive('/login')
-                    ? 'bg-gradient-to-r from-[#75b2c3] to-[#80b37a] text-white'
-                    : 'text-[#4a5568] hover:bg-gradient-to-r hover:from-[#75b2c3] hover:to-[#80b37a] hover:text-white'
-                }`}
+              <Link href="/my-pets" className={navLinkClass('/my-pets')}>Meus Pets</Link>
+              <Link href="/profile" className={navLinkClass('/profile')}>Perfil</Link>
+              <button
+                onClick={logout}
+                className="px-5 py-2.5 rounded-full font-semibold text-sm text-muted-foreground hover:bg-destructive hover:text-destructive-foreground transition-all duration-300"
               >
-                Entrar
-              </Link>
-              <Link
-                href="/register"
-                className={`rounded-[30px] border-2 border-transparent px-6 py-3 text-[0.95rem] font-semibold transition-all duration-300 ${
-                  isActive('/register')
-                    ? 'bg-gradient-to-r from-[#75b2c3] to-[#80b37a] text-white'
-                    : 'text-[#4a5568] hover:bg-gradient-to-r hover:from-[#75b2c3] hover:to-[#80b37a] hover:text-white'
-                }`}
-              >
-                Cadastrar
-              </Link>
+                Sair
+              </button>
             </>
           ) : (
-            <button
-              onClick={logout}
-              className="rounded-[30px] border-2 border-transparent px-6 py-3 text-[0.95rem] font-semibold text-[#4a5568] transition-all duration-300 hover:bg-gradient-to-r hover:from-[#75b2c3] hover:to-[#80b37a] hover:text-white"
-            >
-              Sair
-            </button>
+            <>
+              <Link href="/login" className={navLinkClass('/login')}>Entrar</Link>
+              <Link href="/register" className={navLinkClass('/register')}>Cadastrar</Link>
+            </>
           )}
         </div>
       </div>

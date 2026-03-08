@@ -1,8 +1,6 @@
-// src/components/layout/Footer.tsx
-
-export function Footer() {
+export default function Footer() {
   return (
-    <footer className="mt-8 py-6 text-center text-sm text-white/80">
+    <footer className="text-center py-6 mt-8 text-muted-foreground text-sm">
       <p>Desenvolvido pelo Time NoRest</p>
     </footer>
   );

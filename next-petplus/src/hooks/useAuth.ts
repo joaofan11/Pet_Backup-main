@@ -1,3 +1,5 @@
+'use client';
+
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { AuthData, User } from '@/types';
 import { apiFetch } from '@/lib/api';
@@ -86,14 +88,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider value={{
-      user,
-      token,
-      isAuthenticated: !!user,
-      login,
-      register,
-      logout,
-      updateProfile,
-      refreshUser,
+      user, token, isAuthenticated: !!user,
+      login, register, logout, updateProfile, refreshUser,
     }}>
       {children}
     </AuthContext.Provider>
