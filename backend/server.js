@@ -12,7 +12,8 @@ app.use(cors({
   origin: [
     'https://petplus.onrender.com', // ⚠️ Sua URL do frontend
     'http://localhost:3000', // Para desenvolvimento local
-    'http://localhost:5500'
+    'http://localhost:5500',
+    'http://localhost:3001' // Para desenvolvimento local (Next.js)
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
