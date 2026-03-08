@@ -1,6 +1,5 @@
-/* src/app/globals.css — Tailwind CSS v4 (Next.js 16) */
-@import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
 
 @theme {
   --color-background: hsl(210 20% 98%);
