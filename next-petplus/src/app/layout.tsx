@@ -1,5 +1,4 @@
 // src/app/layout.tsx
-
 import type { Metadata } from 'next';
 import { AuthProvider } from '@/hooks/useAuth';
 import { Navbar } from '@/components/layout/Navbar';
@@ -15,7 +14,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR">
-      <body className="min-h-screen bg-gradient-to-br from-[#75b2c3] to-[#99b06a] font-sans leading-relaxed text-[#1a202c]">
+      <body className="min-h-screen bg-gradient-to-br from-petplus-teal/20 to-petplus-green/20 font-sans leading-relaxed text-foreground">
         <AuthProvider>
           <div className="mx-auto max-w-[1400px] p-5">
             <Navbar />
