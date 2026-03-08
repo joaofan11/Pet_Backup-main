@@ -1,4 +1,4 @@
-const API_URL = 'https://petplus-backend.onrender.com/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 export async function apiFetch<T>(
   endpoint: string,
@@ -6,15 +6,15 @@ export async function apiFetch<T>(
 ): Promise<T> {
   const headers: Record<string, string> = {};
 
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('petplus_token');
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("petplus_token");
     if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+      headers["Authorization"] = `Bearer ${token}`;
     }
   }
 
   if (!options.isFormData) {
-    headers['Content-Type'] = 'application/json';
+    headers["Content-Type"] = "application/json";
   }
 
   const { isFormData, ...fetchOptions } = options;

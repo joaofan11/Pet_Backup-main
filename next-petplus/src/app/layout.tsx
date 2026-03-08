@@ -1,14 +1,14 @@
-// src/app/layout.tsx
-import type { Metadata } from 'next';
-import { AuthProvider } from '@/hooks/useAuth';
-import { Navbar } from '@/components/layout/Navbar';
-import { Footer } from '@/components/layout/Footer';
-import './globals.css';
+import type { Metadata } from "next";
+import { Toaster } from "sonner";
+import { AuthProvider } from "@/hooks/useAuth";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
+import "./globals.css";
 
 export const metadata: Metadata = {
-  title: 'PetPlus - Conectando Corações',
+  title: "PetPlus - Conectando Corações",
   description:
-    'Plataforma completa para adoção de pets, carteira de vacinação digital, serviços e comunidade.',
+    "Plataforma completa para adoção de pets, carteira de vacinação digital, serviços e comunidade.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -21,6 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {children}
             <Footer />
           </div>
+          <Toaster richColors position="top-right" />
         </AuthProvider>
       </body>
     </html>
