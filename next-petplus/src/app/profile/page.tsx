@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import Image from 'next/image';
 import { apiFetch } from '@/lib/api';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -75,7 +76,7 @@ export default function ProfilePage() {
         <div className="text-center mb-8">
           <div className="w-24 h-24 rounded-full overflow-hidden mx-auto bg-primary flex items-center justify-center text-primary-foreground text-3xl font-bold">
             {photoUrl ? (
-              <img src={photoUrl} alt="Profile" className="w-full h-full object-cover" />
+              <Image src={photoUrl} alt="Profile" fill className="object-cover" />
             ) : (
               name?.charAt(0)?.toUpperCase() || '?'
             )}

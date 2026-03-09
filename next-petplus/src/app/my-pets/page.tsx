@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import Image from 'next/image';
 import { apiFetch } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -127,7 +128,7 @@ export default function MyPetsPage() {
           {pets.map((pet) => (
             <div key={pet.id} className="bg-card rounded-xl overflow-hidden shadow-card border border-border/50 hover:-translate-y-2 hover:shadow-card-hover transition-all duration-300">
               <div className="w-full h-52 bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center text-6xl overflow-hidden">
-                {pet.photoUrl ? <img src={pet.photoUrl} alt={pet.name} className="w-full h-full object-cover" /> : getSpeciesIcon(pet.species)}
+                {pet.photoUrl ? <Image src={pet.photoUrl} alt={pet.name} fill className="object-cover" /> : getSpeciesIcon(pet.species)}
               </div>
               <div className="p-5">
                 <h3 className="text-lg font-bold text-foreground mb-3">{pet.name}</h3>
@@ -175,7 +176,7 @@ export default function MyPetsPage() {
               <DialogHeader>
                 <div className="text-center">
                   <div className="w-32 h-32 rounded-full overflow-hidden mx-auto bg-muted flex items-center justify-center text-5xl mb-4">
-                    {selectedPet.photoUrl ? <img src={selectedPet.photoUrl} alt={selectedPet.name} className="w-full h-full object-cover" /> : getSpeciesIcon(selectedPet.species)}
+                    {selectedPet.photoUrl ? <Image src={selectedPet.photoUrl} alt={selectedPet.name} fill className="object-cover" /> : getSpeciesIcon(selectedPet.species)}
                   </div>
                   <DialogTitle className="text-2xl">{selectedPet.name}</DialogTitle>
                   <p className="text-muted-foreground text-sm">Cadastrado em {formatDate(selectedPet.createdAt)}</p>

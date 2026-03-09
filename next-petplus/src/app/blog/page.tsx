@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import type { BlogPost } from '@/types';
+import Image from 'next/image';
 import { formatDateTime } from '@/lib/helpers';
 
 export default function BlogPage() {
@@ -21,6 +22,7 @@ export default function BlogPage() {
   const [content, setContent] = useState('');
   const [location, setLocation] = useState('');
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [existingPhotoUrl, setExistingPhotoUrl] = useState('');
 
   const loadPosts = async () => {
     setLoading(true);
@@ -47,7 +49,12 @@ export default function BlogPage() {
       const formData = new FormData();
       formData.append('content', content);
       if (location) formData.append('location', location);
-      if (photoFile) formData.append('photo', photoFile);
+      if (photoFile) {
+        formData.append('photo', photoFile);
+      } else if (existingPhotoUrl) {
+        // Preserva a foto existente quando editando sem trocar a foto
+        formData.append('photoUrl', existingPhotoUrl);
+      }
 
       const endpoint = editId ? `/blog/${editId}` : '/blog';
       const method = editId ? 'PUT' : 'POST';
@@ -67,12 +74,15 @@ export default function BlogPage() {
     setContent('');
     setLocation('');
     setPhotoFile(null);
+    setExistingPhotoUrl('');
   };
 
   const startEdit = (post: BlogPost) => {
     setEditId(post.id);
     setContent(post.content);
     setLocation(post.location || '');
+    setExistingPhotoUrl(post.photoUrl || '');
+    setPhotoFile(null);
     setShowForm(true);
   };
 
@@ -133,20 +143,38 @@ export default function BlogPage() {
             <div className="space-y-2">
               <label className="text-sm font-semibold text-muted-foreground">O que está acontecendo?</label>
               <textarea
-                value={content} onChange={(e) => setContent(e.target.value)}
-                placeholder="Escreva seu post aqui... (estilo tweet)" maxLength={280}
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Escreva seu post aqui... (estilo tweet)"
+                maxLength={280}
                 className="w-full min-h-[100px] px-4 py-3 rounded-lg border-2 border-border bg-background text-sm resize-y focus:border-primary focus:outline-none"
                 required
               />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-muted-foreground">Adicionar Foto</label>
-                <Input type="file" accept="image/*" onChange={(e) => setPhotoFile(e.target.files?.[0] || null)} />
+                <label className="text-sm font-semibold text-muted-foreground">
+                  {existingPhotoUrl && !photoFile ? '📷 Trocar Foto' : 'Adicionar Foto'}
+                </label>
+                {existingPhotoUrl && !photoFile && (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                    <Image src={existingPhotoUrl} alt="Foto atual" width={40} height={40} className="w-10 h-10 rounded object-cover" />
+                    <span>Foto atual (selecione uma nova para trocar)</span>
+                  </div>
+                )}
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setPhotoFile(e.target.files?.[0] || null)}
+                />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-muted-foreground">Localização</label>
-                <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Ex: Manaus, AM" />
+                <Input
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="Ex: Manaus, AM"
+                />
               </div>
             </div>
             <div className="flex gap-3">
@@ -187,7 +215,7 @@ export default function BlogPage() {
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full overflow-hidden bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm">
                       {post.authorPhoto ? (
-                        <img src={post.authorPhoto} alt={post.ownerName} className="w-full h-full object-cover" />
+                        <Image src={post.authorPhoto!} alt={post.ownerName} width={40} height={40} className="w-full h-full object-cover" />
                       ) : (
                         (post.ownerName || 'U').charAt(0).toUpperCase()
                       )}
@@ -198,19 +226,36 @@ export default function BlogPage() {
                     </div>
                   </div>
                   {isOwner && (
-                    <button onClick={() => startEdit(post)} className="text-sm text-primary font-semibold hover:underline">
-                      Editar
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => startEdit(post)}
+                        className="text-sm text-primary font-semibold hover:underline"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        onClick={() => deletePost(post.id)}
+                        className="text-sm text-destructive font-semibold hover:underline"
+                      >
+                        Excluir
+                      </button>
+                    </div>
                   )}
                 </div>
 
                 <div className="p-5">
-                  <p className="text-foreground leading-relaxed">{post.content}</p>
+                  <p className="text-foreground leading-relaxed whitespace-pre-wrap">{post.content}</p>
                   {post.location && (
                     <p className="text-sm text-muted-foreground mt-2">📍 {post.location}</p>
                   )}
                   {post.photoUrl && (
-                    <img src={post.photoUrl} alt="Post" className="mt-4 rounded-lg w-full max-h-96 object-cover" />
+                      <Image
+                        src={post.photoUrl}
+                        alt="Post"
+                        width={800}
+                        height={600}
+                        className="mt-4 rounded-lg w-full max-h-[600px] object-contain bg-muted/30"
+                      />
                   )}
                 </div>
 
@@ -228,8 +273,8 @@ export default function BlogPage() {
 
                 <div className="px-5 pb-5 space-y-3">
                   {post.comments.map((c) => (
-                    <div key={c.id} className="bg-muted/50 p-3 rounded-lg">
-                      <strong className="text-sm text-foreground">{c.ownerName || 'Usuário'}</strong>
+                    <div key={c.id} className="bg-muted/50 p-3 rounded-lg border-l-2 border-petplus-teal">
+                      <strong className="text-sm text-foreground block">{c.ownerName || 'Usuário'}</strong>
                       <p className="text-sm text-muted-foreground">{c.content}</p>
                     </div>
                   ))}
@@ -237,7 +282,7 @@ export default function BlogPage() {
                     <p className="text-sm text-muted-foreground text-center py-2">Seja o primeiro a comentar!</p>
                   )}
                   {isAuthenticated && (
-                    <form onSubmit={(e) => submitComment(e, post.id)} className="flex gap-2">
+                    <form onSubmit={(e) => submitComment(e, post.id)} className="flex gap-2 mt-2">
                       <Input placeholder="Escreva um comentário..." className="flex-1 h-9 text-sm" />
                       <Button type="submit" size="sm" className="gradient-primary text-primary-foreground">Enviar</Button>
                     </form>

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import Image from 'next/image';
 import { apiFetch } from '@/lib/api';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -107,7 +108,7 @@ export default function AdoptionPage() {
             <div key={pet.id} className="bg-card rounded-xl overflow-hidden shadow-card border border-border/50 hover:-translate-y-2 hover:shadow-card-hover transition-all duration-300">
               <div className="w-full h-52 bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center text-6xl overflow-hidden">
                 {pet.photoUrl ? (
-                  <img src={pet.photoUrl} alt={pet.name} className="w-full h-full object-cover" />
+                  <Image src={pet.photoUrl!} alt={pet.name} fill className="object-cover" />
                 ) : (
                   getSpeciesIcon(pet.species)
                 )}
@@ -152,7 +153,7 @@ export default function AdoptionPage() {
                 <div className="text-center">
                   <div className="w-32 h-32 rounded-full overflow-hidden mx-auto bg-muted flex items-center justify-center text-5xl mb-4">
                     {selectedPet.photoUrl ? (
-                      <img src={selectedPet.photoUrl} alt={selectedPet.name} className="w-full h-full object-cover" />
+                      <Image src={selectedPet.photoUrl!} alt={selectedPet.name} fill className="object-cover" />
                     ) : (
                       getSpeciesIcon(selectedPet.species)
                     )}
