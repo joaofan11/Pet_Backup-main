@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -20,7 +21,7 @@ export default function Navbar() {
   return (
     <nav className="bg-card/95 backdrop-blur-md px-6 py-4 rounded-xl mb-6 flex justify-between items-center flex-wrap border border-border/20 shadow-card">
       <Link href="/" className="flex items-center gap-3">
-        <img src="/logo.png" alt="Logo PetPlus" width={42} height={42} />
+        <Image src="/logo_2.png" alt="Logo PetPlus" width={42} height={42} />
         <span className="text-2xl font-extrabold bg-gradient-to-r from-petplus-teal to-petplus-green bg-clip-text text-transparent">
           PetPlus
         </span>
@@ -31,7 +32,13 @@ export default function Navbar() {
           <div className="flex items-center gap-2.5 px-4 py-2 bg-accent rounded-full">
             <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-primary text-primary-foreground font-bold text-sm cursor-pointer">
               {user.photoUrl ? (
-                <img src={user.photoUrl} alt="Avatar" className="w-full h-full object-cover" />
+                <Image
+                  src={user.photoUrl}
+                  alt="Avatar"
+                  width={32}
+                  height={32}
+                  className="w-full h-full object-cover"
+                />
               ) : (
                 user.name.charAt(0).toUpperCase()
               )}
