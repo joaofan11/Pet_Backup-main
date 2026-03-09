@@ -7,6 +7,7 @@ import { apiFetch } from '@/lib/api';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { useConfirm } from '@/hooks/use-confirm';
 import type { BlogPost } from '@/types';
 import Image from 'next/image';
 import { formatDateTime } from '@/lib/helpers';
@@ -15,6 +16,7 @@ export default function BlogPage() {
   const { isAuthenticated, user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
+  const { confirm } = useConfirm();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -87,7 +89,8 @@ export default function BlogPage() {
   };
 
   const deletePost = async (postId: number) => {
-    if (!confirm('Excluir este post?')) return;
+    const ok = await confirm('Excluir este post permanentemente?', { title: 'Excluir Post' });
+    if (!ok) return;
     try {
       await apiFetch(`/blog/${postId}`, { method: 'DELETE' });
       loadPosts();

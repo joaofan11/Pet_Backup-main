@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { useConfirm } from '@/hooks/use-confirm';
 import type { Pet, Vaccine } from '@/types';
 import { getSpeciesIcon, getAgeLabel, getSizeLabel, formatDate, isVaccineUpcoming } from '@/lib/helpers';
 
@@ -16,6 +17,7 @@ export default function MyPetsPage() {
   const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
+  const { confirm } = useConfirm();
   const [pets, setPets] = useState<Pet[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
@@ -65,7 +67,8 @@ export default function MyPetsPage() {
   };
 
   const deleteVaccine = async (vaccineId: number) => {
-    if (!confirm('Tem certeza que deseja excluir esta vacina?')) return;
+    const ok = await confirm('Tem certeza que deseja excluir esta vacina?', { title: 'Excluir Vacina' });
+    if (!ok) return;
     try {
       await apiFetch(`/pets/vaccines/${vaccineId}`, { method: 'DELETE' });
       await loadPets();
@@ -79,7 +82,8 @@ export default function MyPetsPage() {
   };
 
   const markAsAdopted = async (petId: number) => {
-    if (!confirm('Marcar este pet como adotado?')) return;
+    const ok2 = await confirm('Marcar este pet como adotado? Esta ação não pode ser desfeita.', { title: 'Confirmar Adoção', confirmLabel: 'Sim, adotado!', variant: 'default' });
+    if (!ok2) return;
     try {
       await apiFetch(`/pets/${petId}/adopt`, { method: 'PUT' });
       await loadPets();

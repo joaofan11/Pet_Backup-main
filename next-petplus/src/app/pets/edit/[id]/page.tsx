@@ -6,6 +6,7 @@ import { apiFetch } from '@/lib/api';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { useConfirm } from '@/hooks/use-confirm';
 import type { Pet } from '@/types';
 
 export default function PetRegisterPage() {
@@ -13,6 +14,7 @@ export default function PetRegisterPage() {
   const id = params?.id as string | undefined;
   const router = useRouter();
   const { toast } = useToast();
+  const { confirm } = useConfirm();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     type: '', name: '', species: '', breed: '', age: '', size: '', gender: '', description: '',
@@ -63,7 +65,8 @@ export default function PetRegisterPage() {
   };
 
   const handleDelete = async () => {
-    if (!id || !confirm('Tem certeza que deseja excluir este pet?')) return;
+    const ok = await confirm('Tem certeza que deseja excluir este pet?', { title: 'Excluir Pet' });
+    if (!id || !ok) return;
     try {
       await apiFetch(`/pets/${id}`, { method: 'DELETE' });
       toast({ title: 'Pet excluído com sucesso.' });
